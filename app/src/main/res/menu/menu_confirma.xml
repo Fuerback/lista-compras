@@ -7,4 +7,9 @@
         app:showAsAction="always"
         android:icon="@drawable/ic_check_white_24dp"></item>
 
+    <item android:id="@+id/menuLimpa"
+        android:title="Limpa"
+        app:showAsAction="never">
+    </item>
+
 </menu>

@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,7 +18,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import br.com.fuerback.listacompras.R;
 
-public class MainActivity extends AppCompatActivity {
+public class EditActivity extends AppCompatActivity {
 
     private DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
     private EditText editText;
@@ -27,26 +26,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_edit);
 
         Toolbar toolbar = findViewById(R.id.toolbarPrincipal);
         toolbar.setTitle("Lista de compras");
         setSupportActionBar(toolbar);
 
         this.editText = findViewById(R.id.listaDeCompras);
-        DatabaseReference compras = reference.child("compras");
 
-        compras.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                editText.setText(dataSnapshot.getValue().toString());
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
+        Bundle bundle = getIntent().getExtras();
+        editText.setText( bundle.getString("lista") );
     }
 
     @Override
@@ -58,14 +47,17 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        String lista = this.editText.getText().toString();
-        reference.child("compras").setValue(lista);
+        if (item.getItemId() == R.id.menuConfirma) {
+            String lista = this.editText.getText().toString();
+            reference.child("compras").setValue(lista);
 
-        Intent intent = new Intent(getApplicationContext(), ListActivity.class);
-        intent.putExtra("lista", lista);
-        startActivity(intent);
+            Intent intent = new Intent(getApplicationContext(), ListActivity.class);
+            startActivity(intent);
 
-        finish();
+            finish();
+        } else {
+            editText.setText(null);
+        }
 
         return super.onOptionsItemSelected(item);
     }
