@@ -5,18 +5,20 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import java.util.List;
 
 import br.com.fuerback.listacompras.R;
+import br.com.fuerback.listacompras.models.Item;
 
 public class ListaAdapter extends RecyclerView.Adapter<ListaAdapter.MyViewHolder> {
 
-    private List<String> listaCompras;
+    private List<Item> listaCompras;
 
-    public ListaAdapter(List<String> lista) {
-        this.listaCompras = lista;
+    public ListaAdapter(List<Item> itens) {
+        this.listaCompras = itens;
     }
 
     @NonNull
@@ -30,8 +32,12 @@ public class ListaAdapter extends RecyclerView.Adapter<ListaAdapter.MyViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder myViewHolder, int position) {
-        String item = listaCompras.get(position);
-        myViewHolder.item.setText(item);
+        Item item = listaCompras.get(position);
+        myViewHolder.item.setText(item.getNome());
+
+        myViewHolder.checkBox.setOnCheckedChangeListener(null);
+        // pegar ischecked do objeto
+        myViewHolder.checkBox.setChecked(item.isChecked());
     }
 
     @Override
@@ -41,11 +47,13 @@ public class ListaAdapter extends RecyclerView.Adapter<ListaAdapter.MyViewHolder
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
 
-        TextView item;
+        public TextView item;
+        public CheckBox checkBox;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             item = itemView.findViewById(R.id.textItem);
+            checkBox = itemView.findViewById(R.id.checkBoxItem);
         }
     }
 }

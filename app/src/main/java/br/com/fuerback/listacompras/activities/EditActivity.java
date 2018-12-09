@@ -16,12 +16,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import br.com.fuerback.listacompras.R;
+import br.com.fuerback.listacompras.models.Item;
 
 public class EditActivity extends AppCompatActivity {
 
     private DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
     private EditText editText;
+    private ArrayList<Item> itens;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,8 +40,18 @@ public class EditActivity extends AppCompatActivity {
 
         this.editText = findViewById(R.id.listaDeCompras);
 
-        Bundle bundle = getIntent().getExtras();
-        editText.setText( bundle.getString("lista") );
+        // receber a lista de objetos e salvar eles no editText entre \n
+        Intent i = getIntent();
+        itens = (ArrayList<Item>) i.getSerializableExtra("lista");
+        populaCompras(itens);
+    }
+
+    private void populaCompras(ArrayList<Item> itens) {
+        String compras = "";
+        for(Item item: itens){
+            compras += item.getNome()+"\n";
+        }
+        editText.setText(compras);
     }
 
     @Override
@@ -48,8 +64,12 @@ public class EditActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menuConfirma) {
-            String lista = this.editText.getText().toString();
-            reference.child("compras").setValue(lista);
+
+            List<Item> itens = new ArrayList<>();
+            for (String i : Arrays.asList(editText.getText().toString().split("\n"))){
+                itens.add( new Item( i,false) );
+            }
+            reference.child("comprasTeste").setValue(itens);
 
             Intent intent = new Intent(getApplicationContext(), ListActivity.class);
             startActivity(intent);

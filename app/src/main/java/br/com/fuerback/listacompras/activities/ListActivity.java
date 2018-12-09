@@ -1,6 +1,7 @@
 package br.com.fuerback.listacompras.activities;
 
 import android.content.Intent;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,18 +20,23 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import br.com.fuerback.listacompras.R;
 import br.com.fuerback.listacompras.adapters.ListaAdapter;
+import br.com.fuerback.listacompras.models.Item;
 
 public class ListActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private ListaAdapter listaAdapter;
     private DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-    private String lista;
+    private ValueEventListener valueEventListener;
+    private DatabaseReference comprasRef;
+    private ArrayList<Item> itens = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,13 +54,15 @@ public class ListActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        DatabaseReference compras = reference.child("compras");
+        comprasRef = reference.child("comprasTeste");
 
-        compras.addValueEventListener(new ValueEventListener() {
+        valueEventListener = comprasRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                lista = dataSnapshot.getValue().toString();
-                carregaListaCompras( lista );
+                for ( DataSnapshot dados: dataSnapshot.getChildren() ) {
+                    itens.add(dados.getValue(Item.class));
+                }
+                carregaListaCompras(itens);
             }
 
             @Override
@@ -64,10 +72,8 @@ public class ListActivity extends AppCompatActivity {
         });
     }
 
-    private void carregaListaCompras(String lista) {
-        List<String> listaCompras = Arrays.asList(lista.split("\n"));
-
-        listaAdapter = new ListaAdapter(listaCompras);
+    private void carregaListaCompras(List<Item> itens) {
+        listaAdapter = new ListaAdapter(itens);
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
@@ -87,9 +93,17 @@ public class ListActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.menuEdita){
             Intent intent = new Intent(getApplicationContext(), EditActivity.class);
-            intent.putExtra("lista", lista);
+            intent.putExtra("lista", itens);
             startActivity(intent);
+        } else {
+
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        comprasRef.removeEventListener( valueEventListener );
     }
 }
