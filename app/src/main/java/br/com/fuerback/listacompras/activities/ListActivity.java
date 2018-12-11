@@ -1,10 +1,10 @@
 package br.com.fuerback.listacompras.activities;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,9 +20,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import br.com.fuerback.listacompras.R;
@@ -54,13 +52,17 @@ public class ListActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        comprasRef = reference.child("comprasTeste");
+        comprasRef = reference.child("compras");
 
         valueEventListener = comprasRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for ( DataSnapshot dados: dataSnapshot.getChildren() ) {
-                    itens.add(dados.getValue(Item.class));
+                itens.clear();
+
+                for (DataSnapshot dados : dataSnapshot.getChildren()) {
+                    Item item = dados.getValue(Item.class);
+                    item.setKey(dados.getKey());
+                    itens.add(item);
                 }
                 carregaListaCompras(itens);
             }
@@ -75,11 +77,29 @@ public class ListActivity extends AppCompatActivity {
     private void carregaListaCompras(List<Item> itens) {
         listaAdapter = new ListaAdapter(itens);
 
+        Parcelable recyclerViewState = getRecyclerViewState();
+
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), LinearLayout.VERTICAL));
         recyclerView.setAdapter(listaAdapter);
+
+        restoreRecyclerViewState(recyclerViewState);
+    }
+
+    private void restoreRecyclerViewState(Parcelable recyclerViewState) {
+        if (recyclerViewState != null) {
+            recyclerView.getLayoutManager().onRestoreInstanceState(recyclerViewState);
+        }
+    }
+
+    private Parcelable getRecyclerViewState() {
+        Parcelable recyclerViewState = null;
+        if (recyclerView.getLayoutManager() != null) {
+            recyclerViewState = recyclerView.getLayoutManager().onSaveInstanceState();
+        }
+        return recyclerViewState;
     }
 
     @Override
@@ -91,19 +111,36 @@ public class ListActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.menuEdita){
-            Intent intent = new Intent(getApplicationContext(), EditActivity.class);
-            intent.putExtra("lista", itens);
-            startActivity(intent);
+        if (item.getItemId() == R.id.menuEdita) {
+            startEditActivity();
         } else {
-
+            removeCheckedItens();
+            carregaListaCompras(itens);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void removeCheckedItens() {
+        List<Item> itensToRemove = new ArrayList<>();
+
+        for (Item i : itens) {
+            if (i.isChecked()) {
+                itensToRemove.add(i);
+                comprasRef.child(i.getKey()).removeValue();
+            }
+        }
+        itens.removeAll(itensToRemove);
+    }
+
+    private void startEditActivity() {
+        Intent intent = new Intent(getApplicationContext(), EditActivity.class);
+        intent.putExtra("lista", itens);
+        startActivity(intent);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        comprasRef.removeEventListener( valueEventListener );
+        comprasRef.removeEventListener(valueEventListener);
     }
 }

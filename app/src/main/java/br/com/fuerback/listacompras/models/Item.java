@@ -6,6 +6,7 @@ public class Item implements Serializable {
 
     private String nome;
     private Boolean checked;
+    private String key;
 
     /* Usado para recuperar dados do Firebase diretamente */
     public Item() {
@@ -30,5 +31,13 @@ public class Item implements Serializable {
 
     public void setChecked(Boolean checked) {
         this.checked = checked;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 }

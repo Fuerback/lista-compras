@@ -1,20 +1,16 @@
 package br.com.fuerback.listacompras.activities;
 
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.EditText;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,16 +36,15 @@ public class EditActivity extends AppCompatActivity {
 
         this.editText = findViewById(R.id.listaDeCompras);
 
-        // receber a lista de objetos e salvar eles no editText entre \n
         Intent i = getIntent();
         itens = (ArrayList<Item>) i.getSerializableExtra("lista");
-        populaCompras(itens);
+        populaEditText(itens);
     }
 
-    private void populaCompras(ArrayList<Item> itens) {
+    private void populaEditText(ArrayList<Item> itens) {
         String compras = "";
-        for(Item item: itens){
-            compras += item.getNome()+"\n";
+        for (Item item : itens) {
+            compras += item.getNome() + "\n";
         }
         editText.setText(compras);
     }
@@ -65,11 +60,15 @@ public class EditActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.menuConfirma) {
 
+            DatabaseReference comprasRef = reference.child("compras");
+            comprasRef.removeValue();
+
             List<Item> itens = new ArrayList<>();
-            for (String i : Arrays.asList(editText.getText().toString().split("\n"))){
-                itens.add( new Item( i,false) );
+            for (String i : Arrays.asList(editText.getText().toString().split("\n"))) {
+                Item itemTemp = new Item(i, false);
+                itens.add(itemTemp);
+                comprasRef.push().setValue(itemTemp);
             }
-            reference.child("comprasTeste").setValue(itens);
 
             Intent intent = new Intent(getApplicationContext(), ListActivity.class);
             startActivity(intent);

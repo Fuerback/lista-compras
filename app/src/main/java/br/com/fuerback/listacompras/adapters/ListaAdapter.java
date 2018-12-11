@@ -6,7 +6,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
@@ -16,6 +20,7 @@ import br.com.fuerback.listacompras.models.Item;
 public class ListaAdapter extends RecyclerView.Adapter<ListaAdapter.MyViewHolder> {
 
     private List<Item> listaCompras;
+    private DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
 
     public ListaAdapter(List<Item> itens) {
         this.listaCompras = itens;
@@ -32,12 +37,21 @@ public class ListaAdapter extends RecyclerView.Adapter<ListaAdapter.MyViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder myViewHolder, int position) {
-        Item item = listaCompras.get(position);
+        final Item item = listaCompras.get(position);
         myViewHolder.item.setText(item.getNome());
 
         myViewHolder.checkBox.setOnCheckedChangeListener(null);
-        // pegar ischecked do objeto
         myViewHolder.checkBox.setChecked(item.isChecked());
+
+        myViewHolder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                item.setChecked(isChecked);
+
+                DatabaseReference comprasRef = reference.child("compras");
+                comprasRef.child(item.getKey()).setValue(item);
+            }
+        });
     }
 
     @Override
