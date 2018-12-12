@@ -5,14 +5,14 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.LinearLayout;
+import android.view.View;
+import android.widget.ProgressBar;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -35,6 +35,7 @@ public class ListActivity extends AppCompatActivity {
     private ValueEventListener valueEventListener;
     private DatabaseReference comprasRef;
     private ArrayList<Item> itens = new ArrayList<>();
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +43,7 @@ public class ListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_list);
 
         recyclerView = findViewById(R.id.recyclerListaCompras);
+        progressBar = findViewById(R.id.progressBar);
 
         Toolbar toolbar = findViewById(R.id.toolbarPrincipal);
         toolbar.setTitle("Lista de compras");
@@ -53,6 +55,10 @@ public class ListActivity extends AppCompatActivity {
         super.onStart();
 
         comprasRef = reference.child("compras");
+
+        if( valueEventListener == null ) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
 
         valueEventListener = comprasRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -85,6 +91,10 @@ public class ListActivity extends AppCompatActivity {
         recyclerView.setAdapter(listaAdapter);
 
         restoreRecyclerViewState(recyclerViewState);
+
+        if(progressBar.getVisibility() == View.VISIBLE) {
+            progressBar.setVisibility(View.GONE);
+        }
     }
 
     private void restoreRecyclerViewState(Parcelable recyclerViewState) {
